@@ -175,14 +175,26 @@ class FreeCADRPCServer:
             raise RuntimeError("FreeCAD not available")
 
         docs = []
+
         for name in FreeCAD.listDocuments():
             doc = FreeCAD.getDocument(name)
+
+            modified = False
+
+            try:
+                gui_doc = FreeCADGui.getDocument(name)
+                if gui_doc is not None:
+                    modified = bool(getattr(gui_doc, "Modified", False))
+            except Exception:
+                modified = bool(getattr(doc, "Touched", False))
+
             docs.append({
                 "name": doc.Name,
                 "file_path": doc.FileName or None,
                 "objects": [obj.Name for obj in doc.Objects],
-                "modified": doc.Touched,
+                "modified": modified,
             })
+
         return docs
 
     def get_active_document(self) -> str | None:

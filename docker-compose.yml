@@ -8,10 +8,14 @@ services:
       dockerfile: Dockerfile
     container_name: freecad-mcp
     restart: unless-stopped
+    #ports:
+    #  - "9875:9875"   # XML-RPC
+    #  - "3000:3000"   # VNC web client (if GUI enabled)
+    #  - "5900:5900"   # VNC server (if GUI enabled)
     ports:
-      - "9875:9875"   # XML-RPC
-      - "3000:3000"   # VNC web client (if GUI enabled)
-      - "5900:5900"   # VNC server (if GUI enabled)
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:5900:5900"
+      - "127.0.0.1:9875:9875"
     environment:
       - PUID=1000
       - PGID=1000
@@ -177,14 +181,16 @@ services:
     profiles:
       - server
     ports:
-      - "7860:7860"   # Gradio
+    #  - "7860:7860"   # Gradio
+     - "127.0.0.1:7860:7860"
     environment:
       - FREECAD_HOST=freecad
       - FREECAD_PORT=9875
       - INFERENCE_HOST=inference
       - INFERENCE_PORT=5555
       - GRADIO_PORT=7860
-      - ENABLE_TUNNEL=${ENABLE_TUNNEL:-true}
+      - ENABLE_TUNNEL=false
+    #  - ENABLE_TUNNEL=${ENABLE_TUNNEL:-true}
     volumes:
       - ./data/gradio:/app/data
     depends_on:
