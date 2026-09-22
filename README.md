@@ -1,397 +1,908 @@
-# FreeCAD MCP Server
+<div align="center">
 
-An MCP (Model Context Protocol) server that integrates FreeCAD with AI models (Claude, GPT-4o, Gemini), providing natural language CAD control, Docker-containerized headless execution, Vision AI analysis, and AI-powered 3D generation.
+# 🏗️ FreeCAD MCP
 
-## Features
+### FreeCAD + MCP + Docker + Claude
 
-- **Natural Language CAD Control**: 57 MCP tools for comprehensive CAD operations
-- **Docker-Containerized FreeCAD**: Headless execution with optional VNC GUI access
-- **AI 3D Generation**: TRELLIS.2 for image-to-3D, ComfyUI for text-to-image generation
-- **Gradio Web Interface**: Debug interface with request tracking and image gallery
-- **Cloudflare Quick Tunnels**: Public URL access without port forwarding
-- **Vision AI Integration**: Cosmos VLM for model analysis, SAM3 for segmentation
-- **Docker Service Management**: Start/stop/monitor all services from MCP tools
-- **Dual GPU Support**: Optimized for dual 24GB 3090 setup with automatic quantization
+**Windows-friendly • Dockerized • Localhost-only • No local Python required**
 
-## Architecture
+[![Docker](https://img.shields.io/badge/Docker-Desktop-2496ED?logo=docker&logoColor=white)](https://www.docker.com/products/docker-desktop/)
+[![FreeCAD](https://img.shields.io/badge/FreeCAD-MCP-orange)](https://www.freecad.org/)
+[![MCP](https://img.shields.io/badge/Model_Context_Protocol-MCP-blueviolet)](https://modelcontextprotocol.io/)
+[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![Security](https://img.shields.io/badge/Network-Localhost_Only-success)](#-security)
+[![Tunnel](https://img.shields.io/badge/Cloudflare_Tunnel-Disabled-success)](#-security)
 
-```
-┌─────────────────┐
-│  AI Model       │ (Claude/GPT-4o/Gemini)
-└────────┬────────┘
-         │ MCP Protocol (JSON-RPC 2.0)
-┌────────▼────────┐
-│  MCP Server     │ ← 57 tools
-│  + Gradio UI    │ ← Web interface + tunnel
-└────────┬────────┘
-         │
-    ┌────┴────┬─────────────┬─────────────┐
-    │         │             │             │
-    ▼         ▼             ▼             ▼
-┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
-│ FreeCAD │ │ TRELLIS │ │ ComfyUI │ │Inference│
-│ :9875   │ │ :8000   │ │ :8188   │ │ :5555   │
-│ XML-RPC │ │ HTTP    │ │ HTTP    │ │ ZMQ     │
-└─────────┘ └─────────┘ └─────────┘ └─────────┘
- Headless    Image→3D   Text→Image   VLM+SAM
-```
+<br>
 
-## Quick Start
+A Windows/Docker-friendly fork of **FreeCAD-MCP**, configured for running FreeCAD together with an MCP server and AI clients such as Claude.
 
-### Prerequisites
+</div>
 
-- **Docker Engine**: Install from [docs.docker.com/engine/install](https://docs.docker.com/engine/install/)
-- **Docker Compose**: Included with Docker Desktop, or install separately for Linux
-- **NVIDIA Container Toolkit** (for GPU services): Install from [docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-- **Python 3.10+**
+---
 
-```bash
-# Verify Docker installation
-docker --version
-docker compose version
+## ✨ What does this provide?
 
-# Verify NVIDIA Container Toolkit (optional, for GPU services)
-docker run --rm --gpus all nvidia/cuda:12.1-base nvidia-smi
+This project creates a local AI-to-CAD stack:
+
+```text
+┌───────────────────────┐
+│     Claude Desktop    │
+│      or MCP Client    │
+└───────────┬───────────┘
+            │
+            │ MCP / stdio
+            ▼
+┌───────────────────────┐
+│  freecad-mcp-server   │
+│       Docker          │
+└───────────┬───────────┘
+            │
+            │ XML-RPC :9875
+            ▼
+┌───────────────────────┐
+│      FreeCAD MCP      │
+│       Docker          │
+└───────────┬───────────┘
+            │
+            ▼
+       .FCStd / CAD
 ```
 
-### 1. Start FreeCAD Container
+### Included
 
-```bash
-# Start FreeCAD only
-docker compose up freecad -d
+✅ FreeCAD in Docker  
+✅ MCP server in Docker  
+✅ Browser-based FreeCAD GUI  
+✅ MCP debug interface  
+✅ Claude Desktop integration  
+✅ No Windows Python installation required  
+✅ Localhost-only network exposure  
+✅ Cloudflare public tunnel disabled  
+✅ Windows CRLF protection  
+✅ FreeCAD compatibility fixes  
 
-# Or start with GUI (VNC access on port 3000)
-ENABLE_GUI=true docker compose up freecad -d
+---
+
+# 🚀 Quick Start
+
+If Docker Desktop and Git are already installed:
+
+```powershell
+git clone https://github.com/machavarianialeksandre/FreeCAD-MCP.git
+cd FreeCAD-MCP
+
+docker compose --profile server build
+docker compose --profile server up -d
+docker compose --profile server ps
 ```
 
-### 2. Install MCP Server
+You want to see:
 
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
+```text
+freecad-mcp          Up ... (healthy)
+freecad-mcp-server   Up ... (healthy)
+```
 
-# Install dependencies
+Then open:
+
+| Component | Address |
+|---|---|
+| 🖥️ FreeCAD GUI | `http://127.0.0.1:3000` |
+| 🧪 MCP Debug UI | `http://127.0.0.1:7860` |
+| 🔌 FreeCAD RPC | `127.0.0.1:9875` |
+| 🖱️ VNC | `127.0.0.1:5900` |
+
+---
+
+# 📋 Requirements
+
+### Required
+
+- Windows 10 / 11
+- Docker Desktop
+- Git
+
+### Optional
+
+- Claude Desktop
+
+> **Python does not need to be installed on Windows.**
+>
+> Python and MCP dependencies run inside Docker.
+
+---
+
+# 🐳 1. Verify Docker
+
+Start **Docker Desktop** first.
+
+Then:
+
+```powershell
+docker version
+```
+
+You should see both:
+
+```text
+Client:
+```
+
+and:
+
+```text
+Server: Docker Desktop
+```
+
+Check Docker context:
+
+```powershell
+docker context ls
+```
+
+Recommended active context:
+
+```text
+desktop-linux
+```
+
+---
+
+# 📥 2. Clone the Repository
+
+Example:
+
+```powershell
+cd D:\DockerProjects
+```
+
+Clone:
+
+```powershell
+git clone https://github.com/machavarianialeksandre/FreeCAD-MCP.git
+```
+
+Enter the directory:
+
+```powershell
+cd FreeCAD-MCP
+```
+
+---
+
+# 🔨 3. Build
+
+Normal build:
+
+```powershell
+docker compose --profile server build
+```
+
+For a completely clean rebuild:
+
+```powershell
+docker compose --profile server build --no-cache
+```
+
+> The first build takes longer because Docker must download the FreeCAD image, Python environment and dependencies.
+
+---
+
+# ▶️ 4. Start
+
+```powershell
+docker compose --profile server up -d
+```
+
+Check:
+
+```powershell
+docker compose --profile server ps
+```
+
+Expected:
+
+```text
+NAME                 STATUS
+freecad-mcp          Up ... (healthy)
+freecad-mcp-server   Up ... (healthy)
+```
+
+Both containers should eventually become:
+
+```text
+healthy
+```
+
+---
+
+# 🖥️ 5. FreeCAD GUI
+
+Open in your browser:
+
+```text
+http://127.0.0.1:3000
+```
+
+This is the FreeCAD instance running inside Docker.
+
+---
+
+# 🧪 6. MCP Debug Interface
+
+Open:
+
+```text
+http://127.0.0.1:7860
+```
+
+This exposes the local MCP debug / Gradio interface.
+
+---
+
+# 🔌 7. Test FreeCAD RPC
+
+PowerShell:
+
+```powershell
+Test-NetConnection 127.0.0.1 -Port 9875
+```
+
+Expected:
+
+```text
+TcpTestSucceeded : True
+```
+
+> Use `127.0.0.1` instead of `localhost` to avoid an irrelevant IPv6 `::1` warning on some Windows systems.
+
+---
+
+# ❤️ 8. MCP → FreeCAD Health Check
+
+Run:
+
+```powershell
+docker exec freecad-mcp-server python -c "from src.freecad_client import FreeCADClient; c=FreeCADClient('freecad',9875); print('PING:',c.ping()); print('DOCS:',c.list_documents())"
+```
+
+Expected:
+
+```text
+PING: True
+DOCS: []
+```
+
+An empty document list is normal when no FreeCAD documents are open.
+
+---
+
+# ✍️ 9. Full Read / Write Test
+
+Create a FreeCAD document through MCP:
+
+```powershell
+docker exec freecad-mcp-server python -c "from src.freecad_client import FreeCADClient; c=FreeCADClient('freecad',9875); print('CREATE:',c.create_document('MCP_Test')); print('DOCS:',c.list_documents())"
+```
+
+Expected:
+
+```text
+CREATE: MCP_Test
+DOCS: [DocumentInfo(name='MCP_Test', file_path=None, objects=[], modified=False)]
+```
+
+This confirms the full path:
+
+```text
+MCP
+ │
+ ▼
+FreeCAD RPC
+ │
+ ▼
+FreeCAD Document
+```
+
+---
+
+# 🤖 Claude Desktop
+
+The containers must already be running:
+
+```powershell
+docker compose --profile server up -d
+```
+
+Claude can then start the MCP server inside the existing Docker container.
+
+Example Claude Desktop configuration:
+
+```json
+{
+  "mcpServers": {
+    "freecad": {
+      "command": "docker",
+      "args": [
+        "exec",
+        "-i",
+        "freecad-mcp-server",
+        "python",
+        "-m",
+        "src.mcp_server"
+      ]
+    }
+  }
+}
+```
+
+On Windows the Claude Desktop configuration is commonly located under:
+
+```text
+%APPDATA%\Claude\claude_desktop_config.json
+```
+
+If the file already contains other MCP servers, add `freecad` to the existing `mcpServers` object.
+
+After changing the configuration:
+
+1. Start Docker Desktop.
+2. Start the FreeCAD MCP stack.
+3. Verify both containers are healthy.
+4. Completely close Claude Desktop.
+5. Start Claude Desktop again.
+
+### First Claude test
+
+Try:
+
+```text
+List all open FreeCAD documents.
+```
+
+Then:
+
+```text
+Create a new FreeCAD document named Apartment_Test.
+```
+
+Then a geometry test:
+
+```text
+Create a box in FreeCAD with dimensions
+4000 mm × 3000 mm × 200 mm.
+```
+
+---
+
+# 🔐 Security
+
+This fork intentionally uses more restrictive defaults.
+
+## Localhost-only
+
+Docker ports are bound to:
+
+```text
+127.0.0.1
+```
+
+rather than:
+
+```text
+0.0.0.0
+```
+
+Current bindings:
+
+```text
+127.0.0.1:3000
+127.0.0.1:5900
+127.0.0.1:7860
+127.0.0.1:9875
+```
+
+This prevents direct access from other devices on the local network.
+
+## Public tunnel disabled
+
+```text
+ENABLE_TUNNEL=false
+```
+
+Automatic Cloudflare public tunnel creation is disabled.
+
+## Recommendation
+
+For AI clients such as Claude:
+
+> Keep powerful MCP actions on **Ask / Manual approval** where possible.
+
+Be particularly careful with arbitrary Python/code execution functionality.
+
+---
+
+# ⏹️ Stop
+
+```powershell
+docker compose --profile server down
+```
+
+---
+
+# 🔄 Start Again Later
+
+Once installation is complete, normal daily startup is only:
+
+```powershell
+cd D:\DockerProjects\FreeCAD-MCP
+
+docker compose --profile server up -d
+
+docker compose --profile server ps
+```
+
+If both containers are:
+
+```text
+healthy
+```
+
+the environment is ready.
+
+No rebuild is normally required.
+
+---
+
+# ♻️ Restart
+
+```powershell
+docker compose --profile server restart
+```
+
+Then:
+
+```powershell
+docker compose --profile server ps
+```
+
+---
+
+# 📜 Logs
+
+### FreeCAD
+
+```powershell
+docker compose logs --tail=100 freecad
+```
+
+### MCP
+
+```powershell
+docker compose --profile server logs --tail=100 mcp
+```
+
+### Live logs
+
+```powershell
+docker compose --profile server logs -f
+```
+
+Stop following logs with:
+
+```text
+Ctrl+C
+```
+
+---
+
+# 🧹 Clean Rebuild
+
+If Docker source/configuration has changed:
+
+```powershell
+docker compose --profile server down
+docker compose --profile server build --no-cache
+docker compose --profile server up -d
+```
+
+Then:
+
+```powershell
+docker compose --profile server ps
+```
+
+---
+
+# 📦 Git Configuration
+
+This fork:
+
+```text
+https://github.com/machavarianialeksandre/FreeCAD-MCP
+```
+
+Upstream:
+
+```text
+https://github.com/proximile/FreeCAD-MCP
+```
+
+Recommended remotes:
+
+```text
+origin   → machavarianialeksandre/FreeCAD-MCP
+upstream → proximile/FreeCAD-MCP
+```
+
+Check:
+
+```powershell
+git remote -v
+```
+
+Fetch upstream:
+
+```powershell
+git fetch upstream
+```
+
+> Review upstream changes before merging because this fork contains Windows/Docker compatibility and security-default modifications.
+
+---
+
+# 🪟 Windows Line Ending Protection
+
+This fork includes `.gitattributes`.
+
+Linux-sensitive files are forced to use LF:
+
+```text
+*.sh
+*.py
+*.yml
+*.yaml
+Dockerfile
+Dockerfile.*
+```
+
+This prevents Windows CRLF from producing errors such as:
+
+```text
+exec /app/start.sh: no such file or directory
+```
+
+---
+
+# 🛠️ Fixes Included in This Fork
+
+### ✅ Windows CRLF / Docker fix
+
+The original Docker startup script could become:
+
+```text
+#!/bin/bash\r
+```
+
+instead of:
+
+```text
+#!/bin/bash
+```
+
+which causes Linux to report:
+
+```text
+exec /app/start.sh: no such file or directory
+```
+
+`.gitattributes` now protects relevant files.
+
+---
+
+### ✅ MCP Docker build fix
+
+`pyproject.toml` references:
+
+```text
+README.md
+```
+
+The MCP Docker image therefore now copies the README before:
+
+```text
 pip install -e .
 ```
 
-### 3. Run MCP Server
+This avoids:
 
-```bash
-# For Claude Desktop integration
-python -m src.mcp_server
-
-# Or run debug interface standalone
-python -m src.debug_interface --port 7860
+```text
+OSError: Readme file does not exist: README.md
 ```
 
-### 4. Configure MCP Client
+---
 
-There are two ways to configure the MCP server with your AI client:
+### ✅ FreeCAD document compatibility
 
-#### Option A: Project-level `.mcp.json` (Recommended)
+Some FreeCAD builds do not expose:
 
-Create a `.mcp.json` file in the project root (copy from example):
-
-```bash
-cp .mcp.json.example .mcp.json
+```text
+App.Document.Touched
 ```
 
-Edit `.mcp.json` and update the `cwd` path to your installation directory:
+The RPC document listing implementation has been made more defensive so `list_documents()` works on these versions.
 
-```json
-{
-  "mcpServers": {
-    "freecad": {
-      "command": "python",
-      "args": ["-m", "src.mcp_server"],
-      "cwd": "/absolute/path/to/freecad_mcp",
-      "env": {
-        "FREECAD_HOST": "localhost",
-        "FREECAD_PORT": "9875",
-        "TRELLIS_HOST": "localhost",
-        "TRELLIS_PORT": "8000",
-        "DIFFUSION_HOST": "localhost",
-        "DIFFUSION_PORT": "8188"
-      }
-    }
-  }
-}
+---
+
+### ✅ Safer network defaults
+
+Changed from public/all-interface bindings to:
+
+```text
+127.0.0.1
 ```
 
-MCP clients like Claude Code will automatically detect and use this configuration when working in the project directory.
+for local-only access.
 
-#### Option B: Global Claude Desktop Configuration
+---
 
-Add to `~/.config/claude-desktop/config.json` (Linux) or `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+### ✅ Public tunnel disabled
 
-```json
-{
-  "mcpServers": {
-    "freecad": {
-      "command": "python",
-      "args": ["-m", "src.mcp_server"],
-      "cwd": "/absolute/path/to/freecad_mcp"
-    }
-  }
-}
+```text
+ENABLE_TUNNEL=false
 ```
 
-**Note:** The `cwd` path must be absolute (e.g., `/home/user/freecad_mcp`, not `~/freecad_mcp`).
+is used by default.
 
-## Available Tools
+---
 
-### Document Management
-- `create_document` - Create new FreeCAD document
-- `open_document` - Open existing .FCStd file
-- `save_document` - Save document to file
-- `close_document` - Close document
-- `list_documents` - List all open documents
+# 🧯 Troubleshooting
 
-### Part Primitives
-- `create_primitive` - Create Box, Cylinder, Sphere, Cone, Torus
-- `boolean_operation` - Union, Cut, Intersect operations
-- `transform_object` - Move, rotate, scale objects
-- `fillet_chamfer` - Add fillets or chamfers to edges
+<details>
 
-### Part Design (Parametric)
-- `create_body` - Create PartDesign Body container
-- `create_sketch` - Create parametric sketch on plane/face
-- `add_sketch_geometry` - Add lines, circles, arcs, rectangles
-- `add_sketch_constraint` - Add dimensional and geometric constraints
-- `pad_sketch` - Extrude sketch into solid
-- `pocket_sketch` - Cut pocket from sketch
+<summary><strong>Docker API / dockerDesktopLinuxEngine error</strong></summary>
 
-### Draft (2D)
-- `draft_line` - Create 2D line
-- `draft_rectangle` - Create 2D rectangle
-- `draft_circle` - Create 2D circle
+<br>
 
-### General Operations
-- `get_objects` - List all objects
-- `get_object_info` - Detailed object introspection
-- `edit_object` - Modify object properties
-- `delete_object` - Remove object
-- `execute_code` - Run arbitrary Python (with security checks)
-- `export_model` - Export to STEP, STL, OBJ, IGES
-- `import_model` - Import from various formats
+Example:
 
-### View/Rendering
-- `get_view` - Capture viewport screenshot
-- `set_view` - Set camera angle
-- `screenshot_webpage` - Take screenshot of web interface
-- `render_spinning_video` - Render spinning video of 3D model
-
-### Measurement
-- `measure_distance` - Distance between objects
-- `get_bounding_box` - Object bounding box
-
-### 3D Generation (TRELLIS.2 + ComfyUI)
-- `generate_3d_from_text` - Text description → 3D mesh (via image generation)
-- `generate_3d_from_image` - Image → 3D mesh
-- `get_trellis_status` - Check TRELLIS.2 model status
-- `load_trellis_model` / `unload_trellis_model` - GPU memory management
-- `import_mesh` - Import GLB/OBJ/STL into FreeCAD
-
-### Docker Service Management
-- `start_docker_service` - Start container (freecad, trellis, diffusion, inference)
-- `stop_docker_service` - Stop container
-- `get_docker_status` - Check container status
-- `list_docker_services` - List available services
-- `get_docker_logs` - View container logs
-- `get_gpu_status` - GPU memory usage
-- `get_full_status` - Comprehensive system status
-
-### Cloudflare Tunnels
-- `create_tunnel` - Create public URL for local port
-- `stop_tunnel` - Stop tunnel
-- `list_tunnels` - List active tunnels
-
-## 3D Generation (Optional)
-
-Start TRELLIS.2 and ComfyUI for AI-powered 3D model generation:
-
-```bash
-# Start TRELLIS.2 (image-to-3D)
-docker compose --profile trellis up -d
-
-# Start ComfyUI (text-to-image)
-docker compose --profile diffusion up -d
-
-# Or start both
-docker compose --profile full up -d
+```text
+failed to connect to the docker API
+dockerDesktopLinuxEngine
 ```
 
-### Text-to-3D Pipeline
-1. ComfyUI generates image from text prompt (Z-Image Turbo)
-2. TRELLIS.2 converts image to 3D mesh (GLB)
-3. Optionally imports into FreeCAD
+Most likely cause:
 
-```python
-generate_3d_from_text(
-    prompt="a wooden dining chair",
-    import_to_freecad=True
-)
+> Docker Desktop is not running.
+
+Start Docker Desktop and verify:
+
+```powershell
+docker version
 ```
 
-## Vision AI (Optional)
+</details>
 
-Start the inference container for VLM and SAM capabilities:
+---
 
-```bash
-docker compose --profile vision up -d
+<details>
+
+<summary><strong>Container keeps restarting</strong></summary>
+
+<br>
+
+Check:
+
+```powershell
+docker compose --profile server ps -a
 ```
 
-### VLM Features
-- Analyze CAD models with natural language
-- Validate designs against requirements
-- Get improvement suggestions
-- Analyze spinning videos of 3D models
+Then inspect FreeCAD:
 
-### SAM Features
-- Segment features by clicking points
-- Measure feature areas
-- Highlight specific features
-
-### Combined SAM + VLM Pipeline
-- `segment_and_analyze` - Colorize regions with SAM, then have VLM describe each
-- `segment_grid` - Auto-detect regions using grid sampling
-- `segment_points` - Segment specific points with labels
-- `identify_and_segment` - Two-pass: VLM identifies features, SAM segments, VLM analyzes
-- Automatic container and model lifecycle management
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FREECAD_HOST` | localhost | FreeCAD container hostname |
-| `FREECAD_PORT` | 9875 | XML-RPC port |
-| `INFERENCE_HOST` | localhost | Inference container hostname |
-| `INFERENCE_PORT` | 5555 | ZMQ port |
-| `ENABLE_TUNNEL` | true | Enable Cloudflare Quick Tunnel |
-| `VLM_QUANTIZATION` | 4bit | VLM quantization (4bit, 8bit, none) |
-
-### GPU Configuration
-
-The system auto-detects GPU configuration:
-
-- **Single 48GB+ GPU**: Full precision models
-- **Dual 24GB GPUs**: VLM on GPU 0 (4-bit), SAM on GPU 1
-
-**GPU Memory Usage:**
-| Service | VRAM | Default GPU |
-|---------|------|-------------|
-| TRELLIS.2 | ~20-24GB | cuda:1 (auto-selects) |
-| ComfyUI | ~8GB | cuda:0 |
-| VLM (4-bit) | ~5GB | cuda:0 |
-| SAM | ~2.5GB | cuda:1 |
-
-Use `get_gpu_status()` to check memory before starting services.
-
-## Project Structure
-
-```
-freecad_mcp/
-├── src/
-│   ├── mcp_server.py          # Main MCP server (57 tools)
-│   ├── cache_manager.py       # Session-based file caching
-│   ├── freecad_client.py      # FreeCAD XML-RPC client
-│   ├── docker_client.py       # Docker service management
-│   ├── tunnel_client.py       # Cloudflare tunnel management
-│   ├── segmentation_pipeline.py # SAM + VLM combined analysis
-│   ├── trellis_client.py      # TRELLIS.2 HTTP client
-│   ├── diffusion_client.py    # ComfyUI HTTP client
-│   ├── inference_client.py    # Vision AI ZMQ client
-│   ├── debug_interface.py     # Gradio web interface
-│   └── code_security.py       # Code execution safety
-├── docker/
-│   ├── freecad/
-│   │   ├── Dockerfile
-│   │   ├── rpc_server.py      # FreeCAD XML-RPC server
-│   │   └── render_video.py    # Headless video rendering
-│   ├── inference/
-│   │   ├── Dockerfile
-│   │   └── server.py          # Vision AI ZMQ server
-│   ├── trellis/
-│   │   ├── Dockerfile
-│   │   └── server.py          # TRELLIS.2 HTTP server
-│   └── diffusion/
-│       └── Dockerfile         # ComfyUI + workflows
-├── cache/                     # Output files (auto-managed, 1GB limit)
-│   └── session_YYYYMMDD_HHMMSS/
-├── data/
-│   └── trellis/outputs/       # Generated 3D meshes
-├── tests/
-├── docker-compose.yml
-└── pyproject.toml
+```powershell
+docker compose logs --tail=100 freecad
 ```
 
-## Development
+Or MCP:
 
-```bash
-# Install dev dependencies
-pip install -e ".[dev]"
-
-# Run tests
-pytest
-
-# Type checking
-mypy src/
-
-# Linting
-ruff check src/
+```powershell
+docker compose --profile server logs --tail=100 mcp
 ```
 
-## Security
+</details>
 
-The `execute_code` tool has security checks to prevent:
-- Dangerous module imports (os, subprocess, etc.)
-- File system operations
-- Network access
-- FreeCAD session termination
+---
 
-For advanced operations, review the code security policy in `src/code_security.py`.
+<details>
 
-## Contributing
+<summary><strong>/app/start.sh: no such file or directory</strong></summary>
 
-Contributions are welcome! Please follow these guidelines:
+<br>
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run tests (`pytest`)
-5. Run linting (`ruff check src/`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+Check the generated shell script:
 
-### Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/freecad-mcp.git
-cd freecad-mcp
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install with dev dependencies
-pip install -e ".[dev]"
-
-# Configure MCP server
-cp .mcp.json.example .mcp.json
-# Edit .mcp.json and set "cwd" to your absolute path (e.g., /home/user/freecad-mcp)
-
-# Start FreeCAD container
-docker compose up freecad -d
-
-# Run tests
-pytest
+```powershell
+docker run --rm --entrypoint /bin/sh freecad-mcp-freecad -c "sed -n '1l' /app/start.sh"
 ```
 
-## License
+Correct:
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```text
+#!/bin/bash$
+```
+
+Incorrect:
+
+```text
+#!/bin/bash\r$
+```
+
+`\r` means Windows CRLF line endings were introduced.
+
+This fork includes `.gitattributes` to prevent that.
+
+</details>
+
+---
+
+<details>
+
+<summary><strong>MCP reports FreeCAD connection refused during startup</strong></summary>
+
+<br>
+
+You may see:
+
+```text
+FreeCAD ping failed: [Errno 111] Connection refused
+```
+
+If both containers later report `healthy`, this may simply be startup timing.
+
+Verify the actual connection:
+
+```powershell
+docker exec freecad-mcp-server python -c "from src.freecad_client import FreeCADClient; c=FreeCADClient('freecad',9875); print(c.ping())"
+```
+
+Expected:
+
+```text
+True
+```
+
+</details>
+
+---
+
+<details>
+
+<summary><strong>HOME variable is not set</strong></summary>
+
+<br>
+
+Docker Compose may show:
+
+```text
+The "HOME" variable is not set. Defaulting to a blank string.
+```
+
+This warning does not prevent the core FreeCAD + MCP services from running.
+
+Optional PowerShell workaround:
+
+```powershell
+$env:HOME=$env:USERPROFILE
+```
+
+</details>
+
+---
+
+<details>
+
+<summary><strong>version is obsolete warning</strong></summary>
+
+<br>
+
+Docker Compose V2 may show:
+
+```text
+the attribute `version` is obsolete
+```
+
+This is a warning and does not prevent the stack from running.
+
+</details>
+
+---
+
+# ⚡ Daily Cheat Sheet
+
+### Start
+
+```powershell
+docker compose --profile server up -d
+```
+
+### Status
+
+```powershell
+docker compose --profile server ps
+```
+
+### Test
+
+```powershell
+docker exec freecad-mcp-server python -c "from src.freecad_client import FreeCADClient; c=FreeCADClient('freecad',9875); print('PING:',c.ping())"
+```
+
+Expected:
+
+```text
+PING: True
+```
+
+### FreeCAD
+
+```text
+http://127.0.0.1:3000
+```
+
+### MCP Debug
+
+```text
+http://127.0.0.1:7860
+```
+
+### Stop
+
+```powershell
+docker compose --profile server down
+```
+
+---
+
+# 🌳 Project Relationships
+
+```text
+proximile/FreeCAD-MCP
+        │
+        │ upstream
+        ▼
+machavarianialeksandre/FreeCAD-MCP
+        │
+        │ Windows + Docker fixes
+        ▼
+      Local PC
+        │
+        ▼
+   Docker Desktop
+     ├── FreeCAD
+     └── MCP
+```
+
+---
+
+# 🙏 Upstream
+
+Based on:
+
+**proximile/FreeCAD-MCP**
+
+```text
+https://github.com/proximile/FreeCAD-MCP
+```
+
+Thanks to the original project authors and contributors.
+
+---
+
+<div align="center">
+
+### FreeCAD + Docker + MCP
+
+**Local • Reproducible • AI-ready**
+
+</div>
