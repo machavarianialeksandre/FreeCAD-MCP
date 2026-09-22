@@ -22,7 +22,8 @@ services:
       - TZ=Etc/UTC
       - RPC_PORT=9875
       - RPC_HOST=0.0.0.0
-      - ENABLE_GUI=${ENABLE_GUI:-false}
+      - ENABLE_GUI=true
+    #  - ENABLE_GUI=${ENABLE_GUI:-false}
     volumes:
       - ./data/freecad:/config
       - ./data/models:/data/models
