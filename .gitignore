@@ -112,3 +112,7 @@ data/
 
 # Claude Code local settings
 .claude/
+docker/freecad/Dockerfile.backup
+docker/freecad/Dockerfile.known-good
+docker/freecad/Dockerfile.backup
+docker/freecad/Dockerfile.known-good

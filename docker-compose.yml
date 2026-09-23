@@ -8,14 +8,15 @@ services:
       dockerfile: Dockerfile
     container_name: freecad-mcp
     restart: unless-stopped
+    shm_size: "1gb"
     #ports:
     #  - "9875:9875"   # XML-RPC
     #  - "3000:3000"   # VNC web client (if GUI enabled)
     #  - "5900:5900"   # VNC server (if GUI enabled)
     ports:
-      - "127.0.0.1:3000:3000"
-      - "127.0.0.1:5900:5900"
       - "127.0.0.1:9875:9875"
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3001:3001"
     environment:
       - PUID=1000
       - PGID=1000
