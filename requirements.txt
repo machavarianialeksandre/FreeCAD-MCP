@@ -1,5 +1,5 @@
 # Core MCP dependencies
-mcp>=1.0.0
+mcp>=1.28,<2
 
 # Web interface
 gradio>=4.0.0
